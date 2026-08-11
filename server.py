@@ -1,9 +1,6 @@
 import asyncio, asyncssh, logging, sys
-from storage import (
-    init_db,
-    save_messages,
-    load_history
-)
+from storage import init_db, save_messages, load_history
+
 # logging.basicConfig(level=logging.DEBUG)
 
 
@@ -59,6 +56,7 @@ class ChatServer(asyncssh.SSHServer):
 
 PEER = "127.0.0.1"
 
+
 async def main():
 
     db = init_db()
@@ -66,27 +64,28 @@ async def main():
     # show converstion history.
     for direction, body, ts in load_history(db, PEER):
         if direction == "sent":
-            tag = 'You'
+            tag = "You"
         else:
             tag = "Peer"
 
         print(f"{ts[11:16]} {tag}:{body}")
 
-
-
     async with asyncssh.connect(
         PEER,
         port=8022,
-        known_host=None,
+        known_hosts=None,
         username="me",
         client_keys=["client_key"],  #
     ) as conn:
 
         async with conn.create_process(term_type="ansi") as process:
+
             async def read_output():
                 async for line in process.stdout:
                     print(line, end="")
-                    save_messages(db, PEER, "recv", line) # Saving the incoming messages
+                    save_messages(
+                        db, PEER, "recv", line
+                    )  # Saving the incoming messages
                 asyncio.create_task(read_output())
 
                 loop = asyncio.get_event_loop()
@@ -98,7 +97,7 @@ async def main():
                         break
 
                     process.stdin.write(msg)
-                    save_messages(db, PEER, "sent",msg) # Saving the outgoing message.
+                    save_messages(db, PEER, "sent", msg)  # Saving the outgoing message.
 
 
 asyncio.run(main())
