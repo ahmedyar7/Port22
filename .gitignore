@@ -213,3 +213,4 @@ til.md
 client_key
 client_key.pub
 authorized_keys
+*.db
