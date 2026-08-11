@@ -40,22 +40,46 @@ class ChatSession(asyncssh.SSHServerSession):
 
 class ChatServer(asyncssh.SSHServer):
 
+    def connection_made(self, conn):
+        self._conn = conn
+
     def begin_auth(self, username):
-        return False
+        return True
+
+    def public_key_auth_supported(self):
+        return True  # This means that now the authentication is required.
 
     def session_requested(self):
         return ChatSession()
 
 
 async def main():
-    await asyncssh.create_server(
-        ChatServer,
+
+    async with asyncssh.connect(
         "127.0.0.1",
-        8022,
-        server_host_keys=["ssh_host_key"],
-    )
-    print("Server listening on 127.0.0.1:8022")
-    await asyncio.Future()
+        port=8022,
+        known_host=None,
+        username="me",
+        client_keys=["client_key"],  #
+    ) as conn:
+
+        async with conn.create_process(term_type="ansi") as process:
+
+            async def read_output():
+                async for line in process.stdout:
+                    print(line, end="")
+
+                asyncio.create_task(read_output())
+
+                loop = asyncio.get_event_loop()
+
+                while True:
+                    msg = await loop.run_in_executor(None, sys.stdin.readline)
+
+                    if not msg:
+                        break
+
+                    process.stdin.write(msg)
 
 
 asyncio.run(main())

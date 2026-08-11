@@ -210,3 +210,6 @@ ssh_host_key
 .gitignore
 ssh_host_key.pub
 til.md
+client_key
+client_key.pub
+authorized_keys
