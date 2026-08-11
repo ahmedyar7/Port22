@@ -4,6 +4,10 @@ import asyncio, asyncssh, logging, sys
 
 
 class ChatSession(asyncssh.SSHServerSession):
+
+    def __init__(self):
+        self._chan = None
+
     def connection_made(self, chan):
         self._chan = chan
 
@@ -13,20 +17,28 @@ class ChatSession(asyncssh.SSHServerSession):
     def session_started(self):
         self._chan.write("Connected to peer!\n")
 
+        # Create a task that would send server operator's typed input to the peers.
+        asyncio.create_task(self._send_loop())
+
+    async def _send_loop(self):
+        loop = asyncio.get_event_loop()
+
+        while not self._chan.is_closing():
+            msg = await loop.run_in_executor(None, sys.stdin.readline)
+
+            if not msg:
+                break
+
+            self._chan.write(f"[peer]:{msg}")
+
     def data_received(self, data, datatype):
-        print(f"Peer says: {data}", end="")
+        print(f"[peer] {data}", end="")
 
     def eof_received(self):
         self._chan.close()
 
 
 class ChatServer(asyncssh.SSHServer):
-    def connection_made(self, conn):
-        print("Connection incoming...")
-
-    def connection_lost(self, exc):
-        if exc:
-            print(f"Connection lost: {exc}")
 
     def begin_auth(self, username):
         return False
@@ -42,7 +54,7 @@ async def main():
         8022,
         server_host_keys=["ssh_host_key"],
     )
-    print("Server listening on localhost:8022")
+    print("Server listening on 127.0.0.1:8022")
     await asyncio.Future()
 
 
