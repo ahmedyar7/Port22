@@ -9,25 +9,31 @@ PEER = "127.0.0.1"
 async def main():
     db = init_db()
 
+    # Fetching previous conversation
     for direction, body, ts in load_history(db, PEER):
         if direction == "sent":
             tag = "You"
         else:
             tag = "Peer"
-
         print(f"{ts[11:16]} {tag}:{body}")
 
+    # Connecting over SSH
     async with asyncssh.connect(
         PEER, port=8022, known_hosts=None, username="me", client_keys=["client_key"]
     ) as conn:
+
+        # Opening up a session
         async with conn.create_process(term_type="ansi") as process:
 
             async def read_output():
+                """Function that would save your
+                typed text into database storage.db
+                """
                 async for line in process.stdout:
                     # print(line, end="")
                     save_messages(db, PEER, "recv", line)
 
-            asyncio.create_task(read_output())
+            asyncio.create_task(read_output()) # Creating and doing task async.
 
             loop = asyncio.get_event_loop()
             while True:
