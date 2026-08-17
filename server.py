@@ -1,4 +1,38 @@
 import asyncio, asyncssh, sys
+import socket
+from zeroconf import ServiceInfo, Zeroconf
+
+
+def get_local_ip():
+    """"""
+
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+    # This doesn't sends the data it just picks the right interface.
+    s.connect(("8.8.8.8", 80))
+    ip = s.getsockname()[0]
+    s.close()
+
+    return ip
+
+
+def advertise(port=8022):
+
+    ip = get_local_ip()
+
+    info = ServiceInfo(
+        "_port22._tcp.local",
+        f"{socket.gethostname()}._port22._tcp.local",
+        addresses=[socket.inet_aton(ip)],
+        port=port,
+        properties={"app": "port22"},
+    )
+
+    zc = Zeroconf()
+    zc.register_service(info)
+    print(f"Advertising Port22 on {ip}: {port}")
+
+    return zc, info 
 
 
 class ChatSession(asyncssh.SSHServerSession):
