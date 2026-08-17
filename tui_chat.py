@@ -49,7 +49,7 @@ class ChatApp(App):
 
     async def connect(self) -> None:
         """
-        This function is responsible for connecting to the different 
+        This function is responsible for connecting to the different
         froms of SSH clients that are present.
         """
         try:
@@ -71,6 +71,10 @@ class ChatApp(App):
             self.log_widget.write(f"[red]Connection failed: {e}[/red]")
 
     async def read_output(self) -> None:
+        """
+        This function is responsible for creating the output of the
+        function and actually storing them inside of the chat.db.
+        """
 
         async for line in self.process.stdout:
             line = line.rstrip("\n")
@@ -80,7 +84,6 @@ class ChatApp(App):
                 save_messages(self.db, PEER, "recv", line)
 
     async def on_input_submitted(self, event: Input.Submitted) -> None:
-
         msg = event.value.strip()
 
         if not msg:
