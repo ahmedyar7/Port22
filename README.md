@@ -152,7 +152,7 @@ sequenceDiagram
     B->>LAN: browse (ignore own name + IP)
     LAN-->>A: found 192.168.1.31:8022
     LAN-->>B: found 192.168.1.24:8022
-    Note over A,B: lower IP dials; the other waits DIAL_GRACE
+    Note over A,B: lower IP dials, the other waits DIAL_GRACE
     A->>B: SSH connect, Ed25519 key auth
     B-->>A: channel open
     A->>B: message
@@ -174,7 +174,7 @@ Constants at the top of `peer.py`:
 | `DISCOVERY_TIMEOUT` | `3.0` | seconds spent browsing per pass |
 | `DISCOVERY_INTERVAL` | `5.0` | pause between passes while unconnected |
 | `DIAL_GRACE` | `4.0` | how long the higher-IP peer waits before dialling |
-| `HOST_KEY`, `CLIENT_KEY`, `AUTHORIZED_KEYS` | | key file paths |
+| `HOST_KEY`, `CLIENT_KEY`, `AUTHORIZED_KEYS` | — | key file paths |
 
 `SERVICE_TYPE` (`_port22._tcp.local.`) lives in `discover.py`.
 
